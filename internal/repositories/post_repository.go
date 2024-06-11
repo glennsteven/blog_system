@@ -5,7 +5,6 @@ import (
 	"context"
 	"database/sql"
 	"github.com/sirupsen/logrus"
-	"log"
 	"time"
 )
 
@@ -73,7 +72,7 @@ func (po *postRepository) Update(ctx context.Context, payload entities.Post, id 
 	var updatedPost entities.Post
 	err = row.Scan(&updatedPost.Id, &updatedPost.Title, &updatedPost.Content, &updatedPost.UpdatedAt)
 	if err != nil {
-		log.Printf("got error executing query posts: %v", err)
+		po.log.Printf("got error executing query posts: %v", err)
 		return nil, err
 	}
 
@@ -89,7 +88,7 @@ func (po *postRepository) FindId(ctx context.Context, id int64) (*entities.Post,
 	q := `SELECT id, title, content FROM posts WHERE id = $1`
 	rows, err := po.db.QueryContext(ctx, q, id)
 	if err != nil {
-		log.Printf("got error when find post id %v", err)
+		po.log.Printf("got error when find post id %v", err)
 		return nil, err
 	}
 
@@ -97,7 +96,7 @@ func (po *postRepository) FindId(ctx context.Context, id int64) (*entities.Post,
 	if rows.Next() {
 		err = rows.Scan(&result.Id, &result.Title, &result.Content)
 		if err != nil {
-			log.Printf("got error scan value post %v", err)
+			po.log.Printf("got error scan value post %v", err)
 			return nil, err
 		}
 		return &result, nil
@@ -128,7 +127,7 @@ func (po *postRepository) FindPostId(ctx context.Context, id int64) (*entities.P
 
 	rows, err := po.db.QueryContext(ctx, q, id)
 	if err != nil {
-		log.Printf("got error when find post id %v", err)
+		po.log.Printf("got error when find post id %v", err)
 		return nil, err
 	}
 
@@ -136,11 +135,39 @@ func (po *postRepository) FindPostId(ctx context.Context, id int64) (*entities.P
 	if rows.Next() {
 		err = rows.Scan(&result.Id, &result.Title, &result.Content, &result.Status, &result.Label, &result.FullName, &result.Email)
 		if err != nil {
-			log.Printf("got error scan value post %v", err)
+			po.log.Printf("got error scan value post %v", err)
 			return nil, err
 		}
 		return &result, nil
 	} else {
 		return nil, nil
 	}
+}
+
+func (po *postRepository) DeletePost(ctx context.Context, id int64) error {
+	// Begin transaction
+	tx, err := po.db.BeginTx(ctx, nil)
+	if err != nil {
+		po.log.Printf("could not begin transaction: %v", err)
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			tx.Commit()
+		}
+	}()
+
+	q := `DELETE FROM posts WHERE id = $1`
+
+	// Execute the delete query
+	_, err = tx.ExecContext(ctx, q, id)
+	if err != nil {
+		po.log.Printf("process destroy post got error: %v", err)
+		return err
+	}
+
+	return nil
 }

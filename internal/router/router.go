@@ -78,5 +78,9 @@ func Router(r *mux.Router, cfg *config.Configurations, log *logrus.Logger) {
 		postController.GetPostFromTag,
 	).Methods(http.MethodGet)
 
+	subs.HandleFunc("/posts/{post_id}",
+		postController.DestroyPost,
+	).Methods(http.MethodDelete)
+
 	subs.Use(middlewares.AuthMiddleware)
 }

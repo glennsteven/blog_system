@@ -101,3 +101,30 @@ func (ps *postTagRepository) FindTagId(ctx context.Context, tagId int64) ([]enti
 
 	return result, nil
 }
+
+func (ps *postTagRepository) DeletePostTag(ctx context.Context, id int64) error {
+	// Begin transaction
+	tx, err := ps.db.BeginTx(ctx, nil)
+	if err != nil {
+		ps.log.Printf("could not begin transaction: %v", err)
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			tx.Commit()
+		}
+	}()
+
+	q := `DELETE FROM post_tags WHERE post_id = $1`
+
+	_, err = tx.ExecContext(ctx, q, id)
+	if err != nil {
+		ps.log.Printf("process destroy post tag got error: %v", err)
+		return err
+	}
+
+	return nil
+}
