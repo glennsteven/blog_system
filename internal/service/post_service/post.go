@@ -73,7 +73,7 @@ func (r *roleUserService) Post(ctx context.Context, payload requests.PostRequest
 			TagId:  tg,
 		})
 		if err != nil {
-			r.log.Infof("post tag blog got erro: %v", err)
+			r.log.Infof("post tag blog got error: %v", err)
 			return resources.Response{
 				Code:    http.StatusInternalServerError,
 				Message: "Internal Server Error",
@@ -176,6 +176,59 @@ func (r *roleUserService) UpdatePost(ctx context.Context, payload requests.PostR
 	return resources.Response{
 		Code:    http.StatusCreated,
 		Message: "successfully update your post",
+		Data:    response,
+	}, nil
+}
+
+func (r *roleUserService) FindOnePost(ctx context.Context, postId int64) (resources.Response, error) {
+	post, err := r.repoPost.FindId(ctx, postId)
+	if err != nil {
+		r.log.Infof("post tag blog got error: %v", err)
+		return resources.Response{
+			Code:    http.StatusInternalServerError,
+			Message: "Internal Server Error",
+		}, err
+	}
+
+	if post == nil {
+		return resources.Response{
+			Code:    http.StatusBadRequest,
+			Message: "post data not found",
+		}, err
+	}
+
+	postTags, err := r.repoPostTag.FindPostId(ctx, post.Id)
+	if err != nil {
+		r.log.Infof("post tag blog got error: %v", err)
+		return resources.Response{
+			Code:    http.StatusInternalServerError,
+			Message: "Internal Server Error",
+		}, err
+	}
+	var label []string
+	for _, pt := range postTags {
+		tag, err := r.repoTag.FindId(ctx, pt.TagId)
+		if err != nil {
+			r.log.Infof("post tag blog got error: %v", err)
+			return resources.Response{
+				Code:    http.StatusInternalServerError,
+				Message: "Internal Server Error",
+			}, err
+		}
+
+		label = append(label, tag.Label)
+	}
+
+	response := resources.PostTagResource{
+		Id:      post.Id,
+		Title:   post.Title,
+		Content: post.Content,
+		Tags:    label,
+	}
+
+	return resources.Response{
+		Code:    http.StatusCreated,
+		Message: "successfully get post",
 		Data:    response,
 	}, nil
 }

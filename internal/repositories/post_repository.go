@@ -105,3 +105,42 @@ func (po *postRepository) FindId(ctx context.Context, id int64) (*entities.Post,
 		return nil, nil
 	}
 }
+
+func (po *postRepository) FindPostId(ctx context.Context, id int64) (*entities.Posts, error) {
+	var (
+		result entities.Posts
+		err    error
+	)
+
+	q := `SELECT 
+    			po.id, 
+    			title, 
+    			content, 
+    			status, 
+    			ta.label, 
+    			u.full_name, 
+    			u.email 
+				FROM posts po
+				JOIN post_tags AS pt ON pt.post_id = po.id
+				JOIN tags AS ta ON ta.id = pt.tag_id
+				JOIN users AS u ON u.id = po.drafting
+				WHERE po.id = $1 `
+
+	rows, err := po.db.QueryContext(ctx, q, id)
+	if err != nil {
+		log.Printf("got error when find post id %v", err)
+		return nil, err
+	}
+
+	defer rows.Close()
+	if rows.Next() {
+		err = rows.Scan(&result.Id, &result.Title, &result.Content, &result.Status, &result.Label, &result.FullName, &result.Email)
+		if err != nil {
+			log.Printf("got error scan value post %v", err)
+			return nil, err
+		}
+		return &result, nil
+	} else {
+		return nil, nil
+	}
+}

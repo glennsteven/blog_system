@@ -109,3 +109,29 @@ func (t *tagRepository) FindLabel(ctx context.Context, label string) (*entities.
 		return nil, nil
 	}
 }
+
+func (t *tagRepository) FindId(ctx context.Context, id int64) (*entities.Tag, error) {
+	var (
+		result entities.Tag
+		err    error
+	)
+
+	q := `SELECT id, label FROM tags WHERE id = $1`
+	rows, err := t.db.QueryContext(ctx, q, id)
+	if err != nil {
+		log.Printf("got error when find tag id %v", err)
+		return nil, err
+	}
+
+	defer rows.Close()
+	if rows.Next() {
+		err = rows.Scan(&result.Id, &result.Label)
+		if err != nil {
+			log.Printf("got error scan value tag %v", err)
+			return nil, err
+		}
+		return &result, nil
+	} else {
+		return nil, nil
+	}
+}
