@@ -8,4 +8,5 @@ import (
 
 type PostBlog interface {
 	Post(ctx context.Context, payload requests.PostRequest, userId int64) (resources.Response, error)
+	UpdatePost(ctx context.Context, payload requests.PostRequest, postId int64) (resources.Response, error)
 }

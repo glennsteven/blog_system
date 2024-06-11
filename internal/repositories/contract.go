@@ -25,10 +25,14 @@ type RoleUser interface {
 
 type PostRepository interface {
 	Store(ctx context.Context, payload entities.Post) (*entities.Post, error)
+	Update(ctx context.Context, payload entities.Post, id int64) (*entities.Post, error)
+	FindId(ctx context.Context, id int64) (*entities.Post, error)
 }
 
 type TagRepository interface {
 	Store(ctx context.Context, payload entities.Tag) (*entities.Tag, error)
+	Update(ctx context.Context, payload entities.Tag, label string) (*entities.Tag, error)
+	FindLabel(ctx context.Context, label string) (*entities.Tag, error)
 }
 
 type PostTagRepository interface {

@@ -9,8 +9,10 @@ import (
 	"blog-system/internal/resources"
 	"blog-system/internal/service/post_service"
 	"encoding/json"
+	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"net/http"
+	"strconv"
 )
 
 type postController struct {
@@ -80,6 +82,71 @@ func (p *postController) Post(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		p.log.Errorf("process post got error: %v", err)
+		response.Code = result.Code
+		response.Message = result.Message
+		helper.ResponseJSON(w, result.Code, response)
+		return
+	}
+
+	helper.ResponseJSON(w, http.StatusOK, result)
+	return
+}
+
+func (p *postController) UpdatePost(w http.ResponseWriter, r *http.Request) {
+	var (
+		payload  requests.PostRequest
+		id       = mux.Vars(r)["post_id"]
+		response resources.Response
+	)
+	postId, err := strconv.Atoi(id)
+	if err != nil {
+		response.Code = http.StatusBadRequest
+		response.Message = err.Error()
+		helper.ResponseJSON(w, http.StatusBadRequest, response)
+		return
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&payload); err != nil {
+		response.Code = http.StatusBadRequest
+		response.Message = err.Error()
+		helper.ResponseJSON(w, http.StatusBadRequest, response)
+		return
+	}
+
+	tokenString := r.Header.Get("Authorization")
+	if tokenString == "" {
+		response.Code = http.StatusUnauthorized
+		response.Message = "unauthorized"
+		helper.ResponseJSON(w, http.StatusUnauthorized, response)
+		return
+	}
+
+	auth, err := middlewares.DecodeJWT(p.cfg.Jwt, tokenString)
+	if err != nil {
+		p.log.Errorf("decode auth got error: %v", err)
+		response.Code = http.StatusUnauthorized
+		response.Message = "unauthorized"
+		helper.ResponseJSON(w, http.StatusUnauthorized, response)
+		return
+	}
+
+	if auth.RoleId != consts.User {
+		response.Code = http.StatusForbidden
+		response.Message = "forbidden access"
+		helper.ResponseJSON(w, http.StatusForbidden, response)
+		return
+	}
+
+	defer r.Body.Close()
+
+	result, err := p.postService.UpdatePost(r.Context(), requests.PostRequest{
+		Title:   payload.Title,
+		Content: payload.Content,
+		Tags:    payload.Tags,
+	}, int64(postId))
+	if err != nil {
+		p.log.Errorf("process update post got error: %v", err)
 		response.Code = result.Code
 		response.Message = result.Message
 		helper.ResponseJSON(w, result.Code, response)
