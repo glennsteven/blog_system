@@ -193,3 +193,39 @@ func (p *postController) GetPost(w http.ResponseWriter, r *http.Request) {
 	helper.ResponseJSON(w, http.StatusOK, result)
 	return
 }
+
+func (p *postController) GetPostFromTag(w http.ResponseWriter, r *http.Request) {
+	var (
+		response resources.Response
+	)
+
+	tag := r.URL.Query().Get("tag")
+	if tag == "" {
+		response.Code = http.StatusBadRequest
+		response.Message = "tag parameter is required"
+		helper.ResponseJSON(w, http.StatusBadRequest, response)
+		return
+	}
+
+	tokenString := r.Header.Get("Authorization")
+	if tokenString == "" {
+		response.Code = http.StatusUnauthorized
+		response.Message = "unauthorized"
+		helper.ResponseJSON(w, http.StatusUnauthorized, response)
+		return
+	}
+
+	defer r.Body.Close()
+
+	result, err := p.postService.FindPostFromLabel(r.Context(), tag)
+	if err != nil {
+		p.log.Errorf("process find tag post got error: %v", err)
+		response.Code = result.Code
+		response.Message = result.Message
+		helper.ResponseJSON(w, result.Code, response)
+		return
+	}
+
+	helper.ResponseJSON(w, http.StatusOK, result)
+	return
+}
