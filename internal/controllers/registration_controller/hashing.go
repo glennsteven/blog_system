@@ -2,11 +2,11 @@ package registration_controller
 
 import "golang.org/x/crypto/bcrypt"
 
-func hashingPassword(password []byte, cost int) ([]byte, error) {
-	hashPassword, err := bcrypt.GenerateFromPassword(password, cost)
+func HashPassword(password string) (string, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	return hashPassword, nil
+	return string(hash), nil
 }

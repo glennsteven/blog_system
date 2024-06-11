@@ -3,9 +3,11 @@ package router
 import (
 	checkHealth "blog-system"
 	"blog-system/internal/config"
+	"blog-system/internal/controllers/login_controller"
 	"blog-system/internal/controllers/registration_controller"
 	"blog-system/internal/controllers/role_controller"
 	"blog-system/internal/repositories"
+	"blog-system/internal/service/login_service"
 	"blog-system/internal/service/registration_service"
 	"blog-system/internal/service/role_service"
 	"blog-system/pkg/database/postgres"
@@ -27,9 +29,11 @@ func Router(r *mux.Router, cfg *config.Configurations, log *logrus.Logger) {
 
 	userRegistrationService := registration_service.NewUserRegistrationService(userRepository, log)
 	roleService := role_service.NewRoleUserService(roleRepository, roleUserRepository, userRepository, log)
+	loginService := login_service.NewLoginUserService(userRepository, roleUserRepository, log, cfg)
 
 	userRegistrationController := registration_controller.NewRegistrationController(userRegistrationService, log)
 	roleController := role_controller.NewRoleController(roleService, log)
+	loginController := login_controller.NewLogin(loginService, log)
 
 	r.HandleFunc("/api/register",
 		userRegistrationController.UserRegistration,
@@ -41,6 +45,10 @@ func Router(r *mux.Router, cfg *config.Configurations, log *logrus.Logger) {
 
 	r.HandleFunc("/api/role/assign",
 		roleController.AssignRole,
+	).Methods(http.MethodPost)
+
+	r.HandleFunc("/api/login",
+		loginController.Login,
 	).Methods(http.MethodPost)
 
 }

@@ -77,3 +77,29 @@ func (u *userRoleRepository) FindUserRole(ctx context.Context, payload entities.
 		return nil, nil
 	}
 }
+
+func (u *userRoleRepository) FindUserIdRole(ctx context.Context, id int64) (*entities.UserRole, error) {
+	var (
+		result entities.UserRole
+	)
+
+	q := `SELECT user_id, role_id FROM user_roles WHERE user_id = $1 LIMIT 1`
+
+	rows, err := u.db.QueryContext(ctx, q, id)
+	if err != nil {
+		log.Printf("got error when find role user %v", err)
+		return nil, err
+	}
+
+	defer rows.Close()
+	if rows.Next() {
+		err = rows.Scan(&result.UserId, &result.RoleId)
+		if err != nil {
+			log.Printf("got error scan value %v", err)
+			return nil, err
+		}
+		return &result, nil
+	} else {
+		return nil, nil
+	}
+}
