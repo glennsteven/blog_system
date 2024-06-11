@@ -88,17 +88,18 @@ func DecodeJWT(cfg config.Jwt, tokenString string) (*entities.UserClaim, error) 
 	if !ok {
 		return nil, errors.New("id field missing in claims")
 	}
-	userId := int(userIdFloat64)
 
-	address, ok := claims["Address"].(string)
+	roleIdFloat64, ok := claims["RoleId"].(float64)
 	if !ok {
-		return nil, errors.New("address field missing in claims")
+		return nil, errors.New("id field missing in claims")
 	}
+	userId := int(userIdFloat64)
+	roleId := int64(roleIdFloat64)
 
 	user := &entities.UserClaim{
 		Id:       userId,
 		FullName: fullName,
-		Address:  address,
+		RoleId:   roleId,
 	}
 
 	return user, nil

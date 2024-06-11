@@ -22,3 +22,15 @@ type RoleUser interface {
 	FindUserRole(ctx context.Context, payload entities.UserRole) (*entities.UserRole, error)
 	FindUserIdRole(ctx context.Context, id int64) (*entities.UserRole, error)
 }
+
+type PostRepository interface {
+	Store(ctx context.Context, payload entities.Post) (*entities.Post, error)
+}
+
+type TagRepository interface {
+	Store(ctx context.Context, payload entities.Tag) (*entities.Tag, error)
+}
+
+type PostTagRepository interface {
+	Store(ctx context.Context, payload entities.PostTag) error
+}
