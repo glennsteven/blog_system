@@ -13,7 +13,7 @@ import (
 )
 
 type JWTClaim struct {
-	UserId   int64
+	Id       int64
 	FullName string
 	RoleId   int64
 	jwt.RegisteredClaims
@@ -85,7 +85,7 @@ func (l *loginUserService) LoginUser(ctx context.Context, payload requests.Login
 	exp := time.Now().Add(time.Hour * 15)
 
 	claims := &JWTClaim{
-		UserId:   findUser.Id,
+		Id:       findUser.Id,
 		FullName: findUser.FullName,
 		RoleId:   role.RoleId,
 		RegisteredClaims: jwt.RegisteredClaims{
