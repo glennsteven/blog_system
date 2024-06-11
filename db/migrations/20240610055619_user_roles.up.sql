@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS user_roles(
+    id SERIAL PRIMARY KEY ,
+    user_id INT NOT NULL ,
+    role_id INT NOT NULL ,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_user FOREIGN KEY(user_id) REFERENCES users(id),
+    CONSTRAINT fk_role FOREIGN KEY(role_id) REFERENCES roles(id)
+);
