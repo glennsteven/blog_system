@@ -20,4 +20,5 @@ type RoleRepositories interface {
 type RoleUser interface {
 	Store(ctx context.Context, payload entities.UserRole) (*entities.UserRole, error)
 	FindUserRole(ctx context.Context, payload entities.UserRole) (*entities.UserRole, error)
+	FindUserIdRole(ctx context.Context, id int64) (*entities.UserRole, error)
 }

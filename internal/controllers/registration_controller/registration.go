@@ -7,7 +7,6 @@ import (
 	"blog-system/internal/service/registration_service"
 	"encoding/json"
 	"github.com/sirupsen/logrus"
-	"golang.org/x/crypto/bcrypt"
 	"net/http"
 )
 
@@ -41,15 +40,7 @@ func (re *registrationController) UserRegistration(w http.ResponseWriter, r *htt
 		return
 	}
 
-	isValid := helper.CheckUniquePassword(payload.Password)
-	if !isValid {
-		response.Code = http.StatusUnprocessableEntity
-		response.Message = "password must contain uppercase, lowercase letters, numbers, special character and a minimum of 8 characters"
-		helper.ResponseJSON(w, http.StatusUnprocessableEntity, response)
-		return
-	}
-
-	resultHashing, err := hashingPassword([]byte(payload.Password), bcrypt.DefaultCost)
+	resultHashing, err := HashPassword(payload.Password)
 	if err != nil {
 		re.log.Infof("password hashing got error: %v", err)
 		response.Code = http.StatusBadRequest
@@ -62,7 +53,7 @@ func (re *registrationController) UserRegistration(w http.ResponseWriter, r *htt
 		FullName: payload.FullName,
 		Email:    payload.Email,
 		Address:  payload.Address,
-	}, string(resultHashing))
+	}, resultHashing)
 
 	if err != nil {
 		re.log.Infof("processing user failed: %v", err)
