@@ -4,6 +4,7 @@ import (
 	"blog-system/internal/config"
 	"database/sql"
 	"fmt"
+	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 )
 
@@ -23,11 +24,10 @@ func NewDatabase(cfg config.Database, log *logrus.Logger) *sql.DB {
 		return nil
 	}
 
-	defer func() {
-		if err := conn.Close(); err != nil {
-			log.Errorf("error closing database connection: %v", err)
-		}
-	}()
+	err = conn.Ping()
+	if err != nil {
+		log.Fatalf("connection database : %v", err)
+	}
 
 	return conn
 }
