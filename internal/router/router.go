@@ -66,5 +66,9 @@ func Router(r *mux.Router, cfg *config.Configurations, log *logrus.Logger) {
 		postController.Post,
 	).Methods(http.MethodPost)
 
+	subs.HandleFunc("/posts/{post_id}",
+		postController.UpdatePost,
+	).Methods(http.MethodPut)
+
 	subs.Use(middlewares.AuthMiddleware)
 }
