@@ -40,4 +40,5 @@ type TagRepository interface {
 type PostTagRepository interface {
 	Store(ctx context.Context, payload entities.PostTag) error
 	FindPostId(ctx context.Context, postId int64) ([]entities.PostTag, error)
+	FindTagId(ctx context.Context, tagId int64) ([]entities.PostTag, error)
 }
