@@ -7,4 +7,5 @@ type Post interface {
 	UpdatePost(w http.ResponseWriter, r *http.Request)
 	GetPost(w http.ResponseWriter, r *http.Request)
 	GetPostFromTag(w http.ResponseWriter, r *http.Request)
+	DestroyPost(w http.ResponseWriter, r *http.Request)
 }

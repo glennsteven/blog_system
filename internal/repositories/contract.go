@@ -28,6 +28,7 @@ type PostRepository interface {
 	Update(ctx context.Context, payload entities.Post, id int64) (*entities.Post, error)
 	FindId(ctx context.Context, id int64) (*entities.Post, error)
 	FindPostId(ctx context.Context, id int64) (*entities.Posts, error)
+	DeletePost(ctx context.Context, id int64) error
 }
 
 type TagRepository interface {
@@ -41,4 +42,5 @@ type PostTagRepository interface {
 	Store(ctx context.Context, payload entities.PostTag) error
 	FindPostId(ctx context.Context, postId int64) ([]entities.PostTag, error)
 	FindTagId(ctx context.Context, tagId int64) ([]entities.PostTag, error)
+	DeletePostTag(ctx context.Context, id int64) error
 }

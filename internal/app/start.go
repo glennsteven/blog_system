@@ -22,12 +22,7 @@ func Start() error {
 		return fmt.Errorf("cannot load logger: %w", err)
 	}
 
-	logrus.WithFields(
-		logrus.Fields{
-			"service": cfg.AppName,
-			"port":    cfg.AppPort,
-		}).
-		Info("already running")
+	logrus.Infof("%s already running with port %s", cfg.AppName, cfg.AppPort)
 
 	defer func() {
 		if r := recover(); r != nil {

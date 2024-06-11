@@ -301,3 +301,44 @@ func (r *roleUserService) FindPostFromLabel(ctx context.Context, label string) (
 		Data:    response,
 	}, nil
 }
+
+func (r *roleUserService) DestroyPost(ctx context.Context, postId int64) (resources.Response, error) {
+	post, err := r.repoPost.FindId(ctx, postId)
+	if err != nil {
+		r.log.Infof("find post data error: %v", err)
+		return resources.Response{
+			Code:    http.StatusInternalServerError,
+			Message: "Internal Server Error",
+		}, err
+	}
+
+	if post == nil {
+		return resources.Response{
+			Code:    http.StatusNotFound,
+			Message: "this post is not exist",
+		}, err
+	}
+
+	err = r.repoPostTag.DeletePostTag(ctx, post.Id)
+	if err != nil {
+		r.log.Infof("delete post tag data error: %v", err)
+		return resources.Response{
+			Code:    http.StatusInternalServerError,
+			Message: "Internal Server Error",
+		}, err
+	}
+
+	err = r.repoPost.DeletePost(ctx, postId)
+	if err != nil {
+		r.log.Infof("delete post data error: %v", err)
+		return resources.Response{
+			Code:    http.StatusInternalServerError,
+			Message: "Internal Server Error",
+		}, err
+	}
+
+	return resources.Response{
+		Code:    http.StatusOK,
+		Message: "deleted data post",
+	}, nil
+}
