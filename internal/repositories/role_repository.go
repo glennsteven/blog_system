@@ -18,10 +18,6 @@ func NewRoles(db *sql.DB, log *logrus.Logger) RoleRepositories {
 }
 
 func (r *roleRepository) Store(ctx context.Context, p entities.Role) (*entities.Role, error) {
-	var (
-		result entities.Role
-		err    error
-	)
 
 	// Begin transaction
 	tx, err := r.db.BeginTx(ctx, nil)
@@ -38,7 +34,7 @@ func (r *roleRepository) Store(ctx context.Context, p entities.Role) (*entities.
 		err = tx.Commit()
 	}()
 
-	q := `INSERT INTO roles(name, created_at, updated_at) VALUES ($1,$2,$3) RETURNING *`
+	q := `INSERT INTO roles(name, created_at, updated_at) VALUES ($1,$2,$3)`
 
 	_, err = r.db.ExecContext(ctx, q, p.Name, p.CreatedAt, p.UpdatedAt)
 	if err != nil {
@@ -46,16 +42,10 @@ func (r *roleRepository) Store(ctx context.Context, p entities.Role) (*entities.
 		return nil, err
 	}
 
-	err = r.db.QueryRowContext(ctx, q, p.Name, p.CreatedAt, p.UpdatedAt).Scan(
-		&result.Id,
-		&result.Name,
-		&result.CreatedAt,
-		&result.UpdatedAt,
-	)
-
-	if err != nil {
-		r.log.Errorf("got error scanning row role_controller: %v", err)
-		return nil, err
+	result := entities.Role{
+		Name:      p.Name,
+		CreatedAt: p.CreatedAt,
+		UpdatedAt: p.UpdatedAt,
 	}
 
 	return &result, nil
@@ -70,7 +60,7 @@ func (r *roleRepository) FindRole(ctx context.Context, name string) (*entities.R
 	q := `SELECT name FROM roles WHERE name = $1`
 	rows, err := r.db.QueryContext(ctx, q, name)
 	if err != nil {
-		log.Printf("got error when find role_controller name %v", err)
+		log.Printf("got error when find role name %v", err)
 		return nil, err
 	}
 
@@ -78,7 +68,33 @@ func (r *roleRepository) FindRole(ctx context.Context, name string) (*entities.R
 	if rows.Next() {
 		err = rows.Scan(&result.Name)
 		if err != nil {
-			log.Printf("got error scan value role_controller %v", err)
+			log.Printf("got error scan value role %v", err)
+			return nil, err
+		}
+		return &result, nil
+	} else {
+		return nil, nil
+	}
+}
+
+func (r *roleRepository) FindRoleId(ctx context.Context, id int64) (*entities.Role, error) {
+	var (
+		result entities.Role
+		err    error
+	)
+
+	q := `SELECT id, name FROM roles WHERE id = $1`
+	rows, err := r.db.QueryContext(ctx, q, id)
+	if err != nil {
+		log.Printf("got error when find role id %v", err)
+		return nil, err
+	}
+
+	defer rows.Close()
+	if rows.Next() {
+		err = rows.Scan(&result.Id, &result.Name)
+		if err != nil {
+			log.Printf("got error scan value role %v", err)
 			return nil, err
 		}
 		return &result, nil
