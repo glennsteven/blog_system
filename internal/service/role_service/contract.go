@@ -8,4 +8,5 @@ import (
 
 type RoleUser interface {
 	RoleUser(ctx context.Context, payload requests.RoleRequest) (resources.Response, error)
+	AssignRole(ctx context.Context, payload requests.AssignRoleRequest) (resources.Response, error)
 }

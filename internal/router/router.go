@@ -23,9 +23,10 @@ func Router(r *mux.Router, cfg *config.Configurations, log *logrus.Logger) {
 
 	userRepository := repositories.NewUsers(db, log)
 	roleRepository := repositories.NewRoles(db, log)
+	roleUserRepository := repositories.NewUserRole(db, log)
 
 	userRegistrationService := registration_service.NewUserRegistrationService(userRepository, log)
-	roleService := role_service.NewRoleUserService(roleRepository, log)
+	roleService := role_service.NewRoleUserService(roleRepository, roleUserRepository, userRepository, log)
 
 	userRegistrationController := registration_controller.NewRegistrationController(userRegistrationService, log)
 	roleController := role_controller.NewRoleController(roleService, log)
@@ -36,6 +37,10 @@ func Router(r *mux.Router, cfg *config.Configurations, log *logrus.Logger) {
 
 	r.HandleFunc("/api/role",
 		roleController.RoleUser,
+	).Methods(http.MethodPost)
+
+	r.HandleFunc("/api/role/assign",
+		roleController.AssignRole,
 	).Methods(http.MethodPost)
 
 }

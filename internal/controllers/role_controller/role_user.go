@@ -52,3 +52,35 @@ func (ro *roleController) RoleUser(w http.ResponseWriter, r *http.Request) {
 	helper.ResponseJSON(w, http.StatusCreated, result)
 	return
 }
+
+func (ro *roleController) AssignRole(w http.ResponseWriter, r *http.Request) {
+	var (
+		payload  requests.AssignRoleRequest
+		response resources.Response
+	)
+
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&payload); err != nil {
+		ro.log.Infof("decode request failed: %v", err)
+		response.Code = http.StatusBadRequest
+		response.Message = err.Error()
+		helper.ResponseJSON(w, http.StatusBadRequest, response)
+		return
+	}
+
+	result, err := ro.roleUserService.AssignRole(r.Context(), requests.AssignRoleRequest{
+		UserId: payload.UserId,
+		RoleId: payload.RoleId,
+	})
+
+	if err != nil {
+		ro.log.Infof("processing assign role failed: %v", err)
+		response.Code = http.StatusInternalServerError
+		response.Message = err.Error()
+		helper.ResponseJSON(w, http.StatusInternalServerError, response)
+		return
+	}
+
+	helper.ResponseJSON(w, http.StatusCreated, result)
+	return
+}
