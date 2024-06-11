@@ -156,3 +156,40 @@ func (p *postController) UpdatePost(w http.ResponseWriter, r *http.Request) {
 	helper.ResponseJSON(w, http.StatusOK, result)
 	return
 }
+
+func (p *postController) GetPost(w http.ResponseWriter, r *http.Request) {
+	var (
+		id       = mux.Vars(r)["post_id"]
+		response resources.Response
+	)
+
+	postId, err := strconv.Atoi(id)
+	if err != nil {
+		response.Code = http.StatusBadRequest
+		response.Message = err.Error()
+		helper.ResponseJSON(w, http.StatusBadRequest, response)
+		return
+	}
+
+	tokenString := r.Header.Get("Authorization")
+	if tokenString == "" {
+		response.Code = http.StatusUnauthorized
+		response.Message = "unauthorized"
+		helper.ResponseJSON(w, http.StatusUnauthorized, response)
+		return
+	}
+
+	defer r.Body.Close()
+
+	result, err := p.postService.FindOnePost(r.Context(), int64(postId))
+	if err != nil {
+		p.log.Errorf("process find post got error: %v", err)
+		response.Code = result.Code
+		response.Message = result.Message
+		helper.ResponseJSON(w, result.Code, response)
+		return
+	}
+
+	helper.ResponseJSON(w, http.StatusOK, result)
+	return
+}
