@@ -34,7 +34,7 @@ func Start() error {
 			logrus.Println("Recovered blog service. Error:\n", r)
 		}
 	}()
-	router.Router(r)
+	router.Router(r, cfg, logs)
 
 	logs.Info(http.ListenAndServe(":"+cfg.AppPort, r))
 
