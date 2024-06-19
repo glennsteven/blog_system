@@ -6,6 +6,7 @@ import (
 	"blog-system/internal/requests"
 	"blog-system/internal/resources"
 	"context"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"time"
@@ -33,23 +34,6 @@ func NewRoleUserService(
 }
 
 func (r *roleUserService) RoleUser(ctx context.Context, payload requests.RoleRequest) (resources.Response, error) {
-	role, err := r.repoRole.FindRole(ctx, payload.RoleName)
-	if err != nil {
-		r.log.Infof("finding role name: %v", err)
-		return resources.Response{
-			Code:    http.StatusInternalServerError,
-			Message: "Internal Server Error",
-		}, err
-	}
-
-	if role != nil {
-		r.log.Infof("data role existing: %v", err)
-		return resources.Response{
-			Code:    http.StatusBadRequest,
-			Message: "role is existing",
-		}, err
-	}
-
 	saveRole, err := r.repoRole.Store(ctx, entities.Role{
 		Name:      payload.RoleName,
 		CreatedAt: time.Now(),
@@ -57,11 +41,14 @@ func (r *roleUserService) RoleUser(ctx context.Context, payload requests.RoleReq
 	})
 
 	if err != nil {
-		r.log.Infof("failed process insert new role: %v", err)
-		return resources.Response{
-			Code:    http.StatusInternalServerError,
-			Message: "Internal Server Error",
-		}, err
+		errLog := errors.Wrap(err, "error creating role")
+		r.log.Error(errLog)
+		switch errors.Cause(err) {
+		case entities.ErrRoleAlreadyExist:
+			return resources.Response{Code: http.StatusUnprocessableEntity, Message: err.Error()}, err
+		default:
+			return resources.Response{Code: http.StatusInternalServerError}, err
+		}
 	}
 
 	return resources.Response{
@@ -74,57 +61,51 @@ func (r *roleUserService) RoleUser(ctx context.Context, payload requests.RoleReq
 func (r *roleUserService) AssignRole(ctx context.Context, payload requests.AssignRoleRequest) (resources.Response, error) {
 	user, err := r.repoUser.FindUserId(ctx, payload.UserId)
 	if err != nil {
-		r.log.Infof("finding user id: %v", err)
-		return resources.Response{
-			Code:    http.StatusInternalServerError,
-			Message: "Internal Server Error",
-		}, err
-	}
-
-	if user == nil {
-		r.log.Infof("user is not exist: %v", err)
-		return resources.Response{
-			Code:    http.StatusBadRequest,
-			Message: "user not found",
-		}, err
+		errLog := errors.Wrap(err, "error finding user")
+		r.log.Error(errLog)
+		switch errors.Cause(err) {
+		case entities.ErrUserNotFound:
+			return resources.Response{Code: http.StatusUnprocessableEntity, Message: err.Error()}, err
+		default:
+			return resources.Response{Code: http.StatusInternalServerError}, err
+		}
 	}
 
 	role, err := r.repoRole.FindRoleId(ctx, payload.RoleId)
 	if err != nil {
-		r.log.Infof("finding role id: %v", err)
-		return resources.Response{
-			Code:    http.StatusInternalServerError,
-			Message: "Internal Server Error",
-		}, err
+		errLog := errors.Wrap(err, "error finding role")
+		r.log.Error(errLog)
+		switch errors.Cause(err) {
+		case entities.ErrRoleNotFound:
+			return resources.Response{Code: http.StatusUnprocessableEntity, Message: err.Error()}, err
+		default:
+			return resources.Response{Code: http.StatusInternalServerError}, err
+		}
 	}
 
-	if role == nil {
-		r.log.Infof("role is not exist: %v", err)
-		return resources.Response{
-			Code:    http.StatusBadRequest,
-			Message: "role not found",
-		}, err
-	}
-
-	roleAssigned, err := r.repoRoleUser.FindUserRole(ctx, entities.UserRole{
+	_, err = r.repoRoleUser.FindUserRole(ctx, entities.UserRole{
 		UserId: user.Id,
 		RoleId: role.Id,
 	})
+
 	if err != nil {
-		r.log.Infof("finding role user: %v", err)
-		return resources.Response{
-			Code:    http.StatusInternalServerError,
-			Message: "Internal Server Error",
-		}, err
+		errLog := errors.Wrap(err, "error finding role")
+		r.log.Error(errLog)
+		switch errors.Cause(err) {
+		case entities.ErrRoleNotFound:
+			return resources.Response{Code: http.StatusUnprocessableEntity, Message: err.Error()}, err
+		default:
+			return resources.Response{Code: http.StatusInternalServerError}, err
+		}
 	}
 
-	if roleAssigned != nil {
-		r.log.Infof("data role user existing: %v", err)
-		return resources.Response{
-			Code:    http.StatusBadRequest,
-			Message: "role user duplicate",
-		}, err
-	}
+	//if roleAssigned != nil {
+	//	r.log.Infof("data role user existing: %v", err)
+	//	return resources.Response{
+	//		Code:    http.StatusUnprocessableEntity,
+	//		Message: "role user duplicate",
+	//	}, err
+	//}
 
 	saveRoleUser, err := r.repoRoleUser.Store(ctx, entities.UserRole{
 		UserId:    payload.UserId,
@@ -134,11 +115,14 @@ func (r *roleUserService) AssignRole(ctx context.Context, payload requests.Assig
 	})
 
 	if err != nil {
-		r.log.Infof("failed process insert new role user: %v", err)
-		return resources.Response{
-			Code:    http.StatusInternalServerError,
-			Message: "Internal Server Error",
-		}, err
+		errLog := errors.Wrap(err, "error creating user role")
+		r.log.Error(errLog)
+		switch errors.Cause(err) {
+		case entities.ErrUserRoleAlreadyExist:
+			return resources.Response{Code: http.StatusUnprocessableEntity, Message: err.Error()}, err
+		default:
+			return resources.Response{Code: http.StatusInternalServerError}, err
+		}
 	}
 
 	return resources.Response{

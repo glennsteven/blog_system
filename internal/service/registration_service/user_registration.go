@@ -6,6 +6,7 @@ import (
 	"blog-system/internal/requests"
 	"blog-system/internal/resources"
 	"context"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"time"
@@ -21,23 +22,6 @@ func NewUserRegistrationService(repoUser repositories.UserRepositories, log *log
 }
 
 func (u *userRegistrationService) UserRegistration(ctx context.Context, payload requests.RegisterUserRequest, hashingPassword string) (resources.Response, error) {
-	user, err := u.repoUser.FindUser(ctx, payload.Email)
-	if err != nil {
-		u.log.Infof("finding user: %v", err)
-		return resources.Response{
-			Code:    http.StatusInternalServerError,
-			Message: "Internal Server Error",
-		}, err
-	}
-
-	if user != nil {
-		u.log.Infof("data email user existing: %v", err)
-		return resources.Response{
-			Code:    http.StatusBadRequest,
-			Message: "email has been use another user",
-		}, err
-	}
-
 	saveUser, err := u.repoUser.Store(ctx, entities.User{
 		Email:     payload.Email,
 		FullName:  payload.FullName,
@@ -48,11 +32,14 @@ func (u *userRegistrationService) UserRegistration(ctx context.Context, payload 
 	})
 
 	if err != nil {
-		u.log.Infof("failed process insert new user: %v", err)
-		return resources.Response{
-			Code:    http.StatusInternalServerError,
-			Message: "Internal Server Error",
-		}, err
+		errLog := errors.Wrap(err, "error creating user")
+		u.log.Error(errLog)
+		switch errors.Cause(err) {
+		case entities.ErrUserAlreadyExist:
+			return resources.Response{Code: http.StatusUnprocessableEntity, Message: err.Error()}, err
+		default:
+			return resources.Response{Code: http.StatusInternalServerError}, err
+		}
 	}
 
 	return resources.Response{

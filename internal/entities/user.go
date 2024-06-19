@@ -2,6 +2,18 @@ package entities
 
 import "time"
 
+type ErrorUser string
+
+func (e ErrorUser) Error() string {
+	return string(e)
+}
+
+const (
+	ErrUserQuery        = ErrorUser("Error Query")
+	ErrUserNotFound     = ErrorUser("User not found")
+	ErrUserAlreadyExist = ErrorUser("User already exist")
+)
+
 type User struct {
 	Id        int64     `db:"id" json:"id,omitempty"`
 	Email     string    `db:"email" json:"email"`
