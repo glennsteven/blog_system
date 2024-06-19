@@ -4,7 +4,6 @@ import (
 	"blog-system/internal/entities"
 	"blog-system/pkg/database/postgres"
 	"context"
-	"fmt"
 	"github.com/sirupsen/logrus"
 )
 
@@ -25,7 +24,7 @@ func (u *userRoleRepository) Store(ctx context.Context, p entities.UserRole) (*e
 		err = u.db.ParseSQLError(err)
 		switch err {
 		case postgres.ErrUniqueViolation:
-			return nil, fmt.Errorf("user role already exists")
+			return nil, entities.ErrUserRoleAlreadyExist
 		default:
 			return nil, err
 		}
@@ -53,7 +52,7 @@ func (u *userRoleRepository) FindUserRole(ctx context.Context, payload entities.
 		err = u.db.ParseSQLError(err)
 		switch err {
 		case postgres.ErrNoRowsFound:
-			return nil, fmt.Errorf("user role not found")
+			return nil, entities.ErrUserRoleNotFound
 		default:
 			return nil, err
 		}
@@ -74,7 +73,7 @@ func (u *userRoleRepository) FindUserIdRole(ctx context.Context, id int64) (*ent
 		err = u.db.ParseSQLError(err)
 		switch err {
 		case postgres.ErrNoRowsFound:
-			return nil, fmt.Errorf("user role not found")
+			return nil, entities.ErrUserRoleNotFound
 		default:
 			return nil, err
 		}

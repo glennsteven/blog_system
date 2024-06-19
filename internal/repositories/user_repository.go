@@ -4,7 +4,6 @@ import (
 	"blog-system/internal/entities"
 	"blog-system/pkg/database/postgres"
 	"context"
-	"fmt"
 	"github.com/sirupsen/logrus"
 )
 
@@ -25,7 +24,7 @@ func (u *userRepository) Store(ctx context.Context, p entities.User) (*entities.
 		err = u.db.ParseSQLError(err)
 		switch err {
 		case postgres.ErrUniqueViolation:
-			return nil, fmt.Errorf("user already exists")
+			return nil, entities.ErrUserAlreadyExist
 		default:
 			return nil, err
 		}
@@ -54,7 +53,7 @@ func (u *userRepository) FindUser(ctx context.Context, email string) (*entities.
 		err = u.db.ParseSQLError(err)
 		switch err {
 		case postgres.ErrNoRowsFound:
-			return nil, fmt.Errorf("user not found")
+			return nil, entities.ErrUserNotFound
 		default:
 			return nil, err
 		}
@@ -75,7 +74,7 @@ func (u *userRepository) FindUserId(ctx context.Context, id int64) (*entities.Us
 		err = u.db.ParseSQLError(err)
 		switch err {
 		case postgres.ErrNoRowsFound:
-			return nil, fmt.Errorf("user not found")
+			return nil, entities.ErrUserNotFound
 		default:
 			return nil, err
 		}

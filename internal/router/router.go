@@ -52,11 +52,11 @@ func Router(r *mux.Router, cfg *config.Configurations, log *logrus.Logger) error
 	sub.HandleFunc("/role",
 		roleController.RoleUser,
 	).Methods(http.MethodPost)
-	//
-	//sub.HandleFunc("/role/assign",
-	//	roleController.AssignRole,
-	//).Methods(http.MethodPost)
-	//
+
+	sub.HandleFunc("/role/assign",
+		roleController.AssignRole,
+	).Methods(http.MethodPost)
+
 	//sub.HandleFunc("/login",
 	//	loginController.Login,
 	//).Methods(http.MethodPost)

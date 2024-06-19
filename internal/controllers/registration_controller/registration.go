@@ -45,7 +45,7 @@ func (re *registrationController) UserRegistration(w http.ResponseWriter, r *htt
 		re.log.Infof("password hashing got error: %v", err)
 		response.Code = http.StatusBadRequest
 		response.Message = "Internal Server Error"
-		helper.ResponseJSON(w, http.StatusUnprocessableEntity, response)
+		helper.ResponseJSON(w, http.StatusBadRequest, response)
 		return
 	}
 
@@ -57,9 +57,9 @@ func (re *registrationController) UserRegistration(w http.ResponseWriter, r *htt
 
 	if err != nil {
 		re.log.Infof("processing user failed: %v", err)
-		response.Code = http.StatusInternalServerError
-		response.Message = err.Error()
-		helper.ResponseJSON(w, http.StatusInternalServerError, response)
+		response.Code = result.Code
+		response.Message = result.Message
+		helper.ResponseJSON(w, result.Code, response)
 		return
 	}
 

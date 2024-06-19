@@ -43,9 +43,9 @@ func (ro *roleController) RoleUser(w http.ResponseWriter, r *http.Request) {
 	result, err := ro.roleUserService.RoleUser(r.Context(), requests.RoleRequest{RoleName: payload.RoleName})
 	if err != nil {
 		ro.log.Infof("processing store role failed: %v", err)
-		response.Code = http.StatusInternalServerError
-		response.Message = err.Error()
-		helper.ResponseJSON(w, http.StatusInternalServerError, response)
+		response.Code = result.Code
+		response.Message = result.Message
+		helper.ResponseJSON(w, result.Code, response)
 		return
 	}
 
@@ -75,9 +75,9 @@ func (ro *roleController) AssignRole(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		ro.log.Infof("processing assign role failed: %v", err)
-		response.Code = http.StatusInternalServerError
-		response.Message = err.Error()
-		helper.ResponseJSON(w, http.StatusInternalServerError, response)
+		response.Code = result.Code
+		response.Message = result.Message
+		helper.ResponseJSON(w, result.Code, response)
 		return
 	}
 

@@ -6,6 +6,7 @@ import (
 	"blog-system/internal/requests"
 	"blog-system/internal/resources"
 	"context"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"time"
@@ -31,11 +32,14 @@ func (u *userRegistrationService) UserRegistration(ctx context.Context, payload 
 	})
 
 	if err != nil {
-		u.log.Infof("failed process insert new user: %v", err)
-		return resources.Response{
-			Code:    http.StatusInternalServerError,
-			Message: "Internal Server Error",
-		}, err
+		errLog := errors.Wrap(err, "error creating user")
+		u.log.Error(errLog)
+		switch errors.Cause(err) {
+		case entities.ErrUserAlreadyExist:
+			return resources.Response{Code: http.StatusUnprocessableEntity, Message: err.Error()}, err
+		default:
+			return resources.Response{Code: http.StatusInternalServerError}, err
+		}
 	}
 
 	return resources.Response{
