@@ -33,23 +33,6 @@ func NewRoleUserService(
 }
 
 func (r *roleUserService) RoleUser(ctx context.Context, payload requests.RoleRequest) (resources.Response, error) {
-	role, err := r.repoRole.FindRole(ctx, payload.RoleName)
-	if err != nil {
-		r.log.Infof("finding role name: %v", err)
-		return resources.Response{
-			Code:    http.StatusInternalServerError,
-			Message: "Internal Server Error",
-		}, err
-	}
-
-	if role != nil {
-		r.log.Infof("data role existing: %v", err)
-		return resources.Response{
-			Code:    http.StatusBadRequest,
-			Message: "role is existing",
-		}, err
-	}
-
 	saveRole, err := r.repoRole.Store(ctx, entities.Role{
 		Name:      payload.RoleName,
 		CreatedAt: time.Now(),

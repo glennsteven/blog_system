@@ -21,23 +21,6 @@ func NewUserRegistrationService(repoUser repositories.UserRepositories, log *log
 }
 
 func (u *userRegistrationService) UserRegistration(ctx context.Context, payload requests.RegisterUserRequest, hashingPassword string) (resources.Response, error) {
-	user, err := u.repoUser.FindUser(ctx, payload.Email)
-	if err != nil {
-		u.log.Infof("finding user: %v", err)
-		return resources.Response{
-			Code:    http.StatusInternalServerError,
-			Message: "Internal Server Error",
-		}, err
-	}
-
-	if user != nil {
-		u.log.Infof("data email user existing: %v", err)
-		return resources.Response{
-			Code:    http.StatusBadRequest,
-			Message: "email has been use another user",
-		}, err
-	}
-
 	saveUser, err := u.repoUser.Store(ctx, entities.User{
 		Email:     payload.Email,
 		FullName:  payload.FullName,

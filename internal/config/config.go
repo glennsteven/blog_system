@@ -16,12 +16,15 @@ func Load() (*Configurations, error) {
 		AppEnv:  v.GetString("APP_ENV"),
 		AppName: v.GetString("APP_NAME"),
 		Database: Database{
-			Driver:   v.GetString("DB_DRIVER"),
-			Username: v.GetString("DB_USERNAME"),
-			Password: v.GetString("DB_PASSWORD"),
-			Host:     v.GetString("DB_HOST"),
-			Port:     v.GetInt32("DB_PORT"),
-			DbName:   v.GetString("DB_NAME"),
+			Driver:            v.GetString("DB_DRIVER"),
+			Name:              v.GetString("DB_NAME"),
+			Host:              v.GetString("DB_HOST"),
+			User:              v.GetString("DB_USER"),
+			Password:          v.GetString("DB_PASSWORD"),
+			Timezone:          v.GetString("DB_TIMEZONE"),
+			SSLEnabled:        v.GetBool("DB_SSL_ENABLED"),
+			MaxOpenConnection: v.GetInt("DB_MAX_OPEN_CONN"),
+			MaxIdleConnection: v.GetInt("DB_MAX_IDLE_CONN"),
 		},
 		Logger: Logger{
 			Level: v.GetString("LOG_LEVEL"),
@@ -42,12 +45,15 @@ type Configurations struct {
 }
 
 type Database struct {
-	Driver   string
-	Username string
-	Password string
-	Host     string
-	Port     int32
-	DbName   string
+	Driver            string
+	Name              string
+	Host              string
+	User              string
+	Password          string
+	Timezone          string
+	SSLEnabled        bool
+	MaxOpenConnection int
+	MaxIdleConnection int
 }
 
 type Logger struct {
